@@ -8,9 +8,10 @@ import random
 from PIL import Image
 import os
 
+# Initialisation de l'application Flask
 app = Flask(__name__)
 
-# Définissez les paramètres de votre modèle
+# Définition des paramètres du modèle
 vocab_size = 10000
 embed_dim = 512
 num_heads = 4
@@ -18,11 +19,11 @@ ff_dim = 512
 maxlen = 100
 num_classes = 8
 
-# Charger le tokenizer depuis un fichier (à placer au début du fichier)
+# Chargement du tokenizer depuis un fichier
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-# Charger le modèle transformateur entraîné (à la place du modèle SavedModel)
+# Chargement du modèle transformateur entraîné
 model = tf.keras.models.load_model("model")
 
 # Fonction pour nettoyer le texte
@@ -81,23 +82,24 @@ def display_image_for_emotion(emotion):
     else:
         print("Le chemin vers le répertoire de cette émotion n'est pas spécifié.")
 
+# Définition de la route principale
 @app.route('/')
 def index():
     return render_template('home.html')
 
 @app.route('/traitement_texte', methods=['POST'])
 def traitement_texte():
-    # Récupérer le texte entré par l'utilisateur depuis le formulaire
+    # Récupération du texte entré par l'utilisateur depuis le formulaire
     texte = request.form['texte']
     
-    # Vérifier que le texte n'est pas vide
+    # Vérification que le texte n'est pas vide
     if texte.strip() == "":
         return jsonify({'error': 'Le texte est vide'})
     
     # Prédiction de l'émotion
     try:
-        resultat_emotion = predict_emotion_from_text(texte)
-        # Mapper les indices de classe à des émotions
+        resultat_emotion = predict_emotion_from_text(texte)  # Prédiction sur ce que l'utilisateur entre dans la barre de texte
+        # Dictionnaire créer pour mapper des indices de classe à des émotions
         emotions = {
             0: "sadness",
             1: "joy",
@@ -115,9 +117,9 @@ def traitement_texte():
         # Choix de l'image correspondant à l'émotion
         display_image_for_emotion(emotion_predite)
     
-        return jsonify({'emotion_prediction': emotion_predite})
+        return jsonify({'emotion_prediction': emotion_predite}) # Retourne la prédiction d'émotion
     except Exception as e:
         return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) # Exécution de l'application Flask en mode débogage

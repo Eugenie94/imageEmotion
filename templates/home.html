@@ -64,12 +64,12 @@
     <div class="container-fluid py-5">
         <div class="container">
             <div class="row g-5 align-items-center">
-                <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
+                <!-- <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
                     <div class="about-img">
-                        <!-- <img class="img-fluid" id="emotionImage" src="{{ image_path }}" alt="Emotion Image" style="display: none;"> -->
+                        <img class="img-fluid" id="emotionImage" src="{{ image_path }}" alt="Emotion Image" style="display: none;">
                     </div>
-                </div>
-                <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
+                </div> -->
+                <div class="col-lg-12 wow fadeIn" data-wow-delay="0.5s">
                     <h1 class="mb-4">Tester notre IA </h1>
                     <form id="formTexte" action="/traitement_texte" method="post">
                         <div class="position-relative w-100 mt-3 mb-2">
@@ -96,21 +96,21 @@
     <script>
         $(document).ready(function () {
             $('#formTexte').submit(function (event) {
-                event.preventDefault();  // Empêcher l'envoi du formulaire par défaut
+                event.preventDefault(); 
 
-                var texte = $('#texteInput').val();  // Récupérer le texte entré par l'utilisateur
+                var texte = $('#texteInput').val();  // Texte entré par l'utilisateur
 
-                // Faire une requête AJAX pour envoyer le texte à votre application Flask
+                // Requête AJAX pour envoyer le texte à notre application
                 $.ajax({
                     type: 'POST',
                     url: '/traitement_texte',
-                    data: { texte: texte },
-                    success: function (response) {
+                    data: { texte: texte }, // Envoie le texte en tant que donnée dans la requête
+                    success: function (response) { // Fonction exécutée en cas de succès de la requête
                         if (response.hasOwnProperty('emotion_prediction')) {
                             var emotion_predite = response['emotion_prediction'];
-                            $('#predictionResult').text("Prédiction d'émotion : " + emotion_predite);
-                            // Mettre à jour l'image correspondant à l'émotion prédite
-                            var emotion_folders = {
+                            $('#predictionResult').text("Prédiction d'émotion : " + emotion_predite); // Affiche la prédiction d'émotion
+                            // Met à jour l'image correspondant à l'émotion prédite
+                            var emotion_folders = { // Dictionnaire associant chaque émotion à son dossier correspondant
                                 "Sadness": "sad",
                                 "Joy": "happy",
                                 "Love": "love",
@@ -122,10 +122,10 @@
                                 "Disgust": "disgust"
                             };
 
-                            var folderName = emotion_folders[emotion_predite];
-                            var nouvelleImageSrc = "/images/train/" + folderName + "/";
-                            $('#emotionImage').attr('src', nouvelleImageSrc);
-                            $('#emotionImage').show(); // Afficher l'image
+                            var folderName = emotion_folders[emotion_predite]; // Obtient le nom du dossier associé à l'émotion prédite
+                            var nouvelleImageSrc = "/images/train/" + folderName + "/";  // Construit le chemin de l'image
+                            $('#emotionImage').attr('src', nouvelleImageSrc); // Modifie l'attribut src de l'image avec le nouveau chemin
+                            $('#emotionImage').show(); // Affiche l'image
                         } else if (response.hasOwnProperty('error')) {
                             $('#predictionResult').text(response['error']);
                         }
