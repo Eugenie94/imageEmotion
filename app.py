@@ -4,6 +4,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import tensorflow as tf
 import re
 import pickle
+import random
+from PIL import Image
+import os
 
 app = Flask(__name__)
 
@@ -31,10 +34,20 @@ def clean_text(text):
     text = re.sub(r'[^\w\s]', '', text)        # Suppression des caractères spéciaux
     return text.lower()
 
-# Route pour la page d'accueil
-@app.route('/')
-def index():
-    return render_template('home.html')
+# Chemins vers les répertoires de chaque émotion
+emotion_folders = {
+    "sadness": "sad",
+    "joy": "happy",
+    "anger": "anger",
+    "fear": "fear",
+    "surprise": "surprise",
+    "neutral": "neutral",
+    "contempt": "contempt",
+    "disgust": "disgust"
+}
+
+# Chemin vers le répertoire des images
+IMAGES_DIR = "images/train"
 
 # Fonction pour prédire l'émotion à partir du texte
 def predict_emotion_from_text(text):
@@ -44,7 +57,34 @@ def predict_emotion_from_text(text):
     prediction = model.predict(sequence_padded)[0]
     return prediction
 
-# Route pour la prédiction de l'émotion à partir de la phrase
+# Fonction pour choisir une image au hasard dans un répertoire
+def choose_random_image_from_folder(folder_path):
+    images = os.listdir(folder_path)
+    random_image = random.choice(images)
+    return os.path.join(folder_path, random_image)
+
+# Fonction pour afficher une image correspondant à une émotion
+def display_image_for_emotion(emotion):
+    # Chemin vers le répertoire contenant les images de cette émotion
+    emotion_folder_path = os.path.join(IMAGES_DIR, emotion_folders.get(emotion, ""))
+    
+    if os.path.isdir(emotion_folder_path):
+        # Choix d'une image au hasard dans le dossier de cette émotion
+        image_path = choose_random_image_from_folder(emotion_folder_path)
+        
+        # Affichage de l'image
+        image = Image.open(image_path)
+        image.show()
+        
+        # Affichage de la prédiction
+        print("Prédiction d'émotion:", emotion)
+    else:
+        print("Le chemin vers le répertoire de cette émotion n'est pas spécifié.")
+
+@app.route('/')
+def index():
+    return render_template('home.html')
+
 @app.route('/traitement_texte', methods=['POST'])
 def traitement_texte():
     # Récupérer le texte entré par l'utilisateur depuis le formulaire
@@ -59,20 +99,22 @@ def traitement_texte():
         resultat_emotion = predict_emotion_from_text(texte)
         # Mapper les indices de classe à des émotions
         emotions = {
-            0: "Sadness",
-            1: "Joy",
-            2: "Love",
-            3: "Anger",
-            4: "Fear",
-            5: "Surprise",
-            6: "Neutral",
-            7: "Contempt",
-            8: "Disgust"
+            0: "sadness",
+            1: "joy",
+            2: "anger",
+            3: "fear",
+            4: "surprise",
+            5: "neutral",
+            6: "contempt",
+            7: "disgust"
         }
         # Trouver l'indice de la classe avec la plus grande probabilité
         indice_emotion = resultat_emotion.argmax()
         # Récupérer l'émotion correspondante
         emotion_predite = emotions.get(indice_emotion, "Unknown")
+        # Choix de l'image correspondant à l'émotion
+        display_image_for_emotion(emotion_predite)
+    
         return jsonify({'emotion_prediction': emotion_predite})
     except Exception as e:
         return jsonify({'error': str(e)})

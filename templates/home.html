@@ -66,11 +66,10 @@
             <div class="row g-5 align-items-center">
                 <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
                     <div class="about-img">
-                        <img class="img-fluid" src="{{ url_for('static', filename='img/about-img.jpg') }}">
+                        <!-- <img class="img-fluid" id="emotionImage" src="{{ image_path }}" alt="Emotion Image" style="display: none;"> -->
                     </div>
                 </div>
                 <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
-                    <div class="btn btn-sm border rounded-pill text-primary px-3 mb-3">Démo</div>
                     <h1 class="mb-4">Tester notre IA </h1>
                     <form id="formTexte" action="/traitement_texte" method="post">
                         <div class="position-relative w-100 mt-3 mb-2">
@@ -95,31 +94,41 @@
     <!-- Template Javascript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        $(document).ready(function() {
-            $('#formTexte').submit(function(event) {
+        $(document).ready(function () {
+            $('#formTexte').submit(function (event) {
                 event.preventDefault();  // Empêcher l'envoi du formulaire par défaut
-    
+
                 var texte = $('#texteInput').val();  // Récupérer le texte entré par l'utilisateur
-    
+
                 // Faire une requête AJAX pour envoyer le texte à votre application Flask
                 $.ajax({
                     type: 'POST',
                     url: '/traitement_texte',
                     data: { texte: texte },
-                    success: function(response) {
-                        // Vérifier si la réponse contient une émotion détectée
+                    success: function (response) {
                         if (response.hasOwnProperty('emotion_prediction')) {
-                            var emotion_predite = response.emotion_prediction;
-                            // Mettre à jour l'interface utilisateur avec l'émotion détectée
-                            $('#predictionResult').text('Emotion détectée : ' + emotion_predite);
+                            var emotion_predite = response['emotion_prediction'];
+                            $('#predictionResult').text("Prédiction d'émotion : " + emotion_predite);
+                            // Mettre à jour l'image correspondant à l'émotion prédite
+                            var emotion_folders = {
+                                "Sadness": "sad",
+                                "Joy": "happy",
+                                "Love": "love",
+                                "Anger": "anger",
+                                "Fear": "fear",
+                                "Surprise": "surprise",
+                                "Neutral": "neutral",
+                                "Contempt": "contempt",
+                                "Disgust": "disgust"
+                            };
+
+                            var folderName = emotion_folders[emotion_predite];
+                            var nouvelleImageSrc = "/images/train/" + folderName + "/";
+                            $('#emotionImage').attr('src', nouvelleImageSrc);
+                            $('#emotionImage').show(); // Afficher l'image
                         } else if (response.hasOwnProperty('error')) {
-                            // Gérer les erreurs éventuelles
-                            $('#predictionResult').text('Erreur : ' + response.error);
+                            $('#predictionResult').text(response['error']);
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        // Gérer les erreurs de requête AJAX
-                        $('#predictionResult').text('Erreur AJAX : ' + error);
                     }
                 });
             });
